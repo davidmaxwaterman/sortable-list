@@ -11,11 +11,11 @@
 <dom-module id="sortable-list">
   <template>
     <style>
-       :host {
+      :host {
         display: inline-block;
       }
 
-       ::slotted(*) {
+      ::slotted(*) {
         user-drag: none;
         user-select: none;
         -moz-user-select: none;
@@ -25,7 +25,7 @@
         -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
       }
 
-       ::slotted(.item--transform) {
+      ::slotted(.item--transform) {
         left: 0;
         margin: 0 !important;
         position: fixed !important;
@@ -35,18 +35,18 @@
         z-index: 1;
       }
 
-       ::slotted(.item--pressed) {
+      ::slotted(.item--pressed) {
         transition: none !important;
       }
 
-       ::slotted(.item--dragged) {
-        -webkit-box-shadow: 0 2px 10px rgba(0, 0, 0, .2);
-        box-shadow: 0 2px 10px rgba(0, 0, 0, .2);
+      ::slotted(.item--dragged) {
+        -webkit-box-shadow: 0 2px 10px rgba(0,0,0,.2);
+        box-shadow: 0 2px 10px rgba(0,0,0,.2);
         filter: brightness(1.1);
         z-index: 2;
       }
     </style>
-
+    
     <div id="items">
       <slot id="slot"></slot>
     </div>
@@ -54,9 +54,10 @@
   </template>
 
   <script>
+
     class SortableList extends Polymer.GestureEventListeners(Polymer.Element) {
 
-      static get is() { return 'sortable-list'; }
+      static get is() {return 'sortable-list';}
 
       static get properties() {
         return {
@@ -117,17 +118,17 @@
         Polymer.Async.idlePeriod.run(_ => {
           this._observeItems();
           this._updateItems();
-          this._toggleListeners({ enable: true });
+          this._toggleListeners({enable: true});
         });
-      }
+      } 
 
       disconnectedCallback() {
         super.disconnectedCallback();
         this._unobserveItems();
-        this._toggleListeners({ enable: false });
+        this._toggleListeners({enable: false});
       }
 
-      _toggleListeners({ enable }) {
+      _toggleListeners({enable}) {
         const m = enable ? 'addEventListener' : 'removeEventListener';
         this.$.items[m]('dragstart', this._onDragStart);
         this.$.items[m]('transitionend', this._onTransitionEnd);
@@ -141,7 +142,7 @@
       }
 
       _onTrack(event) {
-        switch (event.detail.state) {
+        switch(event.detail.state) {
           case 'start': this._trackStart(event); break;
           case 'track': this._track(event); break;
           case 'end': this._trackEnd(event); break;
@@ -170,9 +171,9 @@
           const rect = this._rects[idx];
           item.classList.add('item--transform');
           item.style.transition = 'none';
-          const paddingLeft = parseInt(window.getComputedStyle(item).paddingLeft.split('px')[0], 10);
-          const paddingRight = parseInt(window.getComputedStyle(item).paddingRight.split('px')[0], 10);
-          item.style.width = rect.width - paddingLeft - paddingRight + 'px';
+          item.__originalWidth = item.style.width;
+          item.__originalHeight = item.style.height;
+          item.style.width = rect.width + 'px';
           item.style.height = rect.height + 'px';
           this._translate3d(rect.left, rect.top, 1, item);
           setTimeout(_ => {
@@ -194,7 +195,7 @@
           const overItemIndex = this.items.indexOf(overItem);
           const targetIndex = this.items.indexOf(this._target);
           this._moveItemArray(this.items, targetIndex, overItemIndex);
-          for (let i = 0; i < this.items.length; i++) {
+          for(let i = 0; i < this.items.length; i++) {
             if (this.items[i] !== this._target) {
               const rect = this._rects[i];
               requestAnimationFrame(_ => {
@@ -220,11 +221,10 @@
         if (this.dragging || !this._target) {
           return;
         }
-
         this.items.forEach(item => {
           item.style.transform = '';
-          item.style.width = 'auto';
-          item.style.height = 'auto';
+          item.style.width = item.__originalWidth;
+          item.style.height = item.__originalHeight;
           item.classList.remove('item--transform');
         });
 
@@ -263,21 +263,21 @@
         }
         const items = this.$.slot.assignedNodes().filter(node => {
           if ((node.nodeType === Node.ELEMENT_NODE) &&
-            (!this.sortable || node.matches(this.sortable))) {
+              (!this.sortable || node.matches(this.sortable))) {
             return true;
           }
         });
         this._setItems(items);
       }
 
-      _itemFromCoords({ x, y }) {
-        if (!this._rects) { return; }
+      _itemFromCoords({x, y}) {
+        if (!this._rects) {return;}
         let match = null;
         this._rects.forEach((rect, i) => {
           if ((x >= rect.left) &&
-            (x <= rect.left + rect.width) &&
-            (y >= rect.top) &&
-            (y <= rect.top + rect.height)) {
+              (x <= rect.left + rect.width) &&
+              (y >= rect.top) &&
+              (y <= rect.top + rect.height)) {
             match = this.items[i];
           }
         });
@@ -304,7 +304,7 @@
           this._observer = new MutationObserver(_ => {
             this._updateItems();
           });
-          this._observer.observe(this, { childList: true });
+          this._observer.observe(this, {childList: true});
         }
       }
 
@@ -323,7 +323,7 @@
         if (newIndex >= array.length) {
           var k = newIndex - array.length;
           while ((k--) + 1) {
-            array.push(undefined);
+          array.push(undefined);
           }
         }
         array.splice(newIndex, 0, array.splice(oldIndex, 1)[0]);
@@ -337,5 +337,6 @@
     }
 
     customElements.define(SortableList.is, SortableList);
+
   </script>
 </dom-module>
